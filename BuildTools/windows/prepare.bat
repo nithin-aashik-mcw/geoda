@@ -11,7 +11,7 @@ if %PROCESSOR_ARCHITECTURE% == x86 (
 ) else if %PROCESSOR_ARCHITECTURE% == AMD64 (
     call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat"
 ) else if %PROCESSOR_ARCHITECTURE% == ARM64 (
-    call "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsarm64.bat"
+    call "C:\Program Files (x86)\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsarm64.bat"
 )
 
 
