@@ -140,7 +140,7 @@ jobs:
           $env:GDA_PATH="$env:GITHUB_WORKSPACE\BuildTools\windows"
           cd $env:GDA_PATH
           mkdir temp
-          if($env:platform -neq "arm64")
+          if($env:platform -ne "arm64")
           {
             #
             # GDAL # gisinternals SDK version still to 2016
@@ -182,7 +182,7 @@ jobs:
             nmake -f makefile.vc UNICODE=1 SHARED=1 RUNTIME_LIBS=dynamic BUILD=release MONOLITHIC=1 USE_OPENGL=1 USE_POSTSCRIPT=1 TARGET_CPU=ARM64
           }
           cd $env:GDA_PATH\temp
-          if($env:platform -neq "arm64")
+          if($env:platform -ne "arm64")
           {
             #
             # Boost 1.75
@@ -248,7 +248,7 @@ jobs:
           Invoke-WebRequest "https://github.com/yixuan/spectra/archive/refs/tags/v0.8.0.zip" -OutFile "spectra.zip"
           7z x spectra.zip
           Rename-Item spectra-0.8.0 spectra
-          if($env:platform -neq "arm64")
+          if($env:platform -ne "arm64")
           {
             #
             # OpenCL
