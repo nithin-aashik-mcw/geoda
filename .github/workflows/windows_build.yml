@@ -39,6 +39,11 @@ jobs:
             MSVC_VER: 1930
             platform: x86
             runner: windows-2022
+          - VS_VERSION: Visual Studio 17
+            VS_VER: 2022
+            MSVC_VER: 1930
+            platform: arm64
+            runner: windows-11-arm
 
     env:
       VS_VERSION: ${{ matrix.VS_VERSION }}
@@ -64,11 +69,17 @@ jobs:
               $env:WIN64_ARG=""
               $env:CMAKE_ARCHITECTURE="Win32"
           }
-          else
+          else if
           {
               $env:ARCHITECTURE="amd64"
               $env:WIN64_ARG="WIN64=YES"
               $env:CMAKE_ARCHITECTURE="x64"
+          }
+          else if
+          {
+              $env:ARCHITECTURE="arm64"
+              $env:WIN64_ARG="WIN64=YES"
+              $env:CMAKE_ARCHITECTURE="arm64"
           }
           echo "::set-env name=PATH::$env:PATH"
           echo "::set-env name=ARCHITECTURE::$env:ARCHITECTURE"
@@ -97,6 +108,15 @@ jobs:
         uses: crazy-max/ghaction-chocolatey@v3
         with:
           args: install innosetup --no-progress
+
+      # Setup vcpkg if arm64
+      - name: Setup vcpkg
+        if: matrix.platform == 'arm64'
+        shell: pwsh
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git $env:RUNNER_TEMP\vcpkg
+          & "$env:RUNNER_TEMP\vcpkg\bootstrap-vcpkg.bat"
+          echo "VCPKG_ROOT=$env:RUNNER_TEMP\vcpkg" >> $env:GITHUB_ENV
 
       # Create Deps
       - if: steps.cache.outputs.cache-hit != 'true'
