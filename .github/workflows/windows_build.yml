@@ -196,8 +196,10 @@ jobs:
             #
             # Boost 1.88
             #
-            git clone --branch boost-1.88.0 --recursive https://github.com/boostorg/boost.git boost_1_88_0
+            git clone --recursive https://github.com/boostorg/boost.git boost_1_88_0
             pushd boost_1_88_0
+              git checkout boost-1.88.0
+              git submodule update --init --recursive
               call bootstrap.bat
               b2.exe -j12 toolset=msvc architecture=arm address-model=64 abi=ms pch=off --without-mpi --without-graph_parallel install --prefix=..\boost
               robocopy "..\boost\include\boost-1_88\boost" "..\boost\include\boost" /E /MOVE
