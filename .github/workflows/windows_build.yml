@@ -109,15 +109,6 @@ jobs:
         with:
           args: install innosetup --no-progress
 
-      # Setup vcpkg if arm64
-      - name: Setup vcpkg
-        if: matrix.platform == 'arm64'
-        shell: pwsh
-        run: |
-          git clone https://github.com/microsoft/vcpkg.git $env:RUNNER_TEMP\vcpkg
-          & "$env:RUNNER_TEMP\vcpkg\bootstrap-vcpkg.bat"
-          echo "VCPKG_ROOT=$env:RUNNER_TEMP\vcpkg" >> $env:GITHUB_ENV
-
       # Create Deps
       - if: steps.cache.outputs.cache-hit != 'true'
         name: Create Dependencies
@@ -149,23 +140,26 @@ jobs:
           $env:GDA_PATH="$env:GITHUB_WORKSPACE\BuildTools\windows"
           cd $env:GDA_PATH
           mkdir temp
-          #
-          # GDAL # gisinternals SDK version still to 2016
-          #
-          if($env:platform -eq "x86") 
+          if($env:platform -neq "arm64")
           {
-            $env:GDAL_SDK_VER="release-1911"
+            #
+            # GDAL # gisinternals SDK version still to 2016
+            #
+            if($env:platform -eq "x86") 
+            {
+              $env:GDAL_SDK_VER="release-1911"
+            }
+            else
+            {
+              $env:GDAL_SDK_VER="release-1911-x64"
+            }
+            cd temp 
+            Invoke-WebRequest "https://github.com/GeoDaCenter/software/releases/download/v2000/$env:GDAL_SDK_VER-dev.zip" -OutFile "$env:GDAL_SDK_VER.zip" 
+            cd ..
+            7z x .\temp\$env:GDAL_SDK_VER.zip
+            dir
+            Rename-Item $env:GDAL_SDK_VER libraries
           }
-          else
-          {
-            $env:GDAL_SDK_VER="release-1911-x64"
-          }
-          cd temp 
-          Invoke-WebRequest "https://github.com/GeoDaCenter/software/releases/download/v2000/$env:GDAL_SDK_VER-dev.zip" -OutFile "$env:GDAL_SDK_VER.zip" 
-          cd ..
-          7z x .\temp\$env:GDAL_SDK_VER.zip
-          dir
-          Rename-Item $env:GDAL_SDK_VER libraries
           cd temp
           #
           # wxWidgets 3.1.4
@@ -179,17 +173,24 @@ jobs:
           {
             nmake -f makefile.vc UNICODE=1 SHARED=1 RUNTIME_LIBS=dynamic BUILD=release MONOLITHIC=1 USE_OPENGL=1 USE_POSTSCRIPT=1
           }
-          else 
+          elseif($env:platform -eq "x64") 
           {
             nmake -f makefile.vc UNICODE=1 SHARED=1 RUNTIME_LIBS=dynamic BUILD=release MONOLITHIC=1 USE_OPENGL=1 USE_POSTSCRIPT=1 TARGET_CPU=AMD64
           }
+          elseif($env:platform -eq "arm64") 
+          {
+            nmake -f makefile.vc UNICODE=1 SHARED=1 RUNTIME_LIBS=dynamic BUILD=release MONOLITHIC=1 USE_OPENGL=1 USE_POSTSCRIPT=1 TARGET_CPU=ARM64
+          }
           cd $env:GDA_PATH\temp
-          #
-          # Boost 1.75
-          #
-          Invoke-WebRequest "https://github.com/lixun910/pygeoda_boost/archive/refs/tags/v1.18.zip" -OutFile "boost.zip"
-          7z x boost.zip
-          Rename-Item pygeoda_boost-1.18 boost
+          if($env:platform -neq "arm64")
+          {
+            #
+            # Boost 1.75
+            #
+            Invoke-WebRequest "https://github.com/lixun910/pygeoda_boost/archive/refs/tags/v1.18.zip" -OutFile "boost.zip"
+            7z x boost.zip
+            Rename-Item pygeoda_boost-1.18 boost
+          }
           #
           # JSON Spirit v4.08
           #
@@ -201,9 +202,13 @@ jobs:
           {
             msbuild.exe json_vs2019.sln /property:Configuration="Release" /p:Platform="Win32"
           }
-          else 
+          elseif($env:platform -eq "x64") 
           {
             msbuild.exe json_vs2019.sln /property:Configuration="Release" /p:Platform="x64"
+          }
+          elseif($env:platform -eq "arm64") 
+          {
+            msbuild.exe json_vs2022.sln /property:Configuration="Release" /p:Platform="ARM64"
           }
           cd ..
           #
@@ -219,11 +224,17 @@ jobs:
             msbuild.exe clapack_vs2019.sln /t:BLAS\blas_vs2019 /property:Configuration="ReleaseDLL" /p:Platform="Win32"
             msbuild.exe clapack_vs2019.sln /t:clapack_vs2019 /property:Configuration="ReleaseDLL" /p:Platform="Win32"
           }
-          else 
+          elseif($env:platform -eq "x64")
           {
             msbuild.exe clapack_vs2019.sln /t:libf2c_vs2019 /property:Configuration="ReleaseDLL" /p:Platform="x64"
             msbuild.exe clapack_vs2019.sln /t:BLAS\blas_vs2019 /property:Configuration="ReleaseDLL" /p:Platform="x64"
             msbuild.exe clapack_vs2019.sln /t:clapack_vs2019 /property:Configuration="ReleaseDLL" /p:Platform="x64"
+          }
+          elseif($env:platform -eq "arm64")
+          {
+            msbuild.exe clapack_vs2022.sln /t:libf2c_vs2022 /property:Configuration="ReleaseDLL" /p:Platform="ARM64"
+            msbuild.exe clapack_vs2022.sln /t:BLAS\blas_vs2022 /property:Configuration="ReleaseDLL" /p:Platform="ARM64"
+            msbuild.exe clapack_vs2022.sln /t:clapack_vs2022 /property:Configuration="ReleaseDLL" /p:Platform="ARM64"
           }
           cd ..
           #
@@ -237,11 +248,14 @@ jobs:
           Invoke-WebRequest "https://github.com/yixuan/spectra/archive/refs/tags/v0.8.0.zip" -OutFile "spectra.zip"
           7z x spectra.zip
           Rename-Item spectra-0.8.0 spectra
-          #
-          # OpenCL
-          #
-          Invoke-WebRequest "https://github.com/GeoDaCenter/software/releases/download/v2000/OpenCL.zip" -OutFile "OpenCL.zip"
-          7z x OpenCL.zip
+          if($env:platform -neq "arm64")
+          {
+            #
+            # OpenCL
+            #
+            Invoke-WebRequest "https://github.com/GeoDaCenter/software/releases/download/v2000/OpenCL.zip" -OutFile "OpenCL.zip"
+            7z x OpenCL.zip
+          }
           dir
           cd ..
 
