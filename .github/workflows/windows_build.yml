@@ -102,25 +102,6 @@ jobs:
             BuildTools/windows/libraries
             BuildTools/windows/temp
           key: ${{ runner.os }}-${{ matrix.platform }}-deps-cache-${{ hashFiles('BuildTools/windows/deps.md') }}
-      
-      - name: Build Boost
-        if: matrix.platform == 'arm64'
-        shell: pwsh
-        run: |
-          $env:BUILD_HOME="$env:GITHUB_WORKSPACE\BuildTools\windows"
-          cd $env:BUILD_HOME
-          mkdir temp
-          cd temp
-          Invoke-WebRequest `
-            "https://archives.boost.io/release/1.88.0/source/boost_1_88_0.zip" `
-            -OutFile "boost_1_88_0.zip"
-
-          7z x boost_1_88_0.zip
-
-          pushd boost_1_88_0
-          cmd /c "bootstrap.bat"
-          cmd /c "b2.exe -j12 toolset=msvc architecture=arm address-model=64 abi=ms pch=off --without-mpi --without-graph_parallel install --prefix=..\boost"
-          popd
 
       # Install innosetup
       - name: Install innosetup
@@ -210,20 +191,20 @@ jobs:
             7z x boost.zip
             Rename-Item pygeoda_boost-1.18 boost
           }
-          # else
-          # {
-          #   #
-          #   # Boost 1.88
-          #   #
-          #   Invoke-WebRequest "https://archives.boost.io/release/1.88.0/source/boost_1_88_0.zip" -OutFile "boost_1_88_0.zip"
-          #   7z x boost_1_88_0.zip   
-          #   pushd boost_1_88_0
-          #     call bootstrap.bat
-          #     b2.exe -j12 toolset=msvc architecture=arm address-model=64 abi=ms pch=off --without-mpi --without-graph_parallel install --prefix=..\boost
-          #     robocopy "..\boost\include\boost-1_88\boost" "..\boost\include\boost" /E /MOVE
-          #     rmdir /s /q "..\boost\include\boost-1_88"
-          #   popd
-          # }
+          else
+          {
+            #
+            # Boost 1.88
+            #
+            Invoke-WebRequest "https://archives.boost.io/release/1.88.0/source/boost_1_88_0.zip" -OutFile "boost_1_88_0.zip"
+            7z x boost_1_88_0.zip   
+            pushd boost_1_88_0
+              call bootstrap.bat
+              b2.exe -j12 toolset=msvc architecture=arm address-model=64 abi=ms pch=off --without-mpi --without-graph_parallel install --prefix=..\boost
+              robocopy "..\boost\include\boost-1_88\boost" "..\boost\include\boost" /E /MOVE
+              rmdir /s /q "..\boost\include\boost-1_88"
+            popd
+          }
           #
           # JSON Spirit v4.08
           #
