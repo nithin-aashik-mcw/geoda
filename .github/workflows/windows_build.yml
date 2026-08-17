@@ -196,13 +196,15 @@ jobs:
             #
             # Boost 1.88
             #
-            git clone --branch boost-1.88.0 https://github.com/boostorg/boost.git boost_1_88_0
+            Invoke-WebRequest "https://archives.boost.io/release/1.88.0/source/boost_1_88_0.zip" -OutFile "boost_1_88_0.zip"
+            echo "%ERRORLEVEL%"
+            7z x boost_1_88_0.zip   
+            echo "%ERRORLEVEL%"
             pushd boost_1_88_0
-              git submodule update --init --recursive --depth 1
               call bootstrap.bat
               b2.exe -j12 toolset=msvc architecture=arm address-model=64 abi=ms pch=off --without-mpi --without-graph_parallel install --prefix=..\boost
               robocopy "..\boost\include\boost-1_88\boost" "..\boost\include\boost" /E /MOVE
-              rmdir \s \q "..\boost\include\boost-1_88"
+              rmdir /s /q "..\boost\include\boost-1_88"
             popd
           }
           #
