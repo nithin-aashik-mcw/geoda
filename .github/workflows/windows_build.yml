@@ -196,8 +196,7 @@ jobs:
             #
             # Boost 1.88
             #
-            Invoke-WebRequest "https://archives.boost.io/release/1.88.0/source/boost_1_88_0.zip" -OutFile "boost_1_88_0.zip"
-            7z x boost_1_88_0.zip   
+            git clone --branch boost-1.88.0 --recursive https://github.com/boostorg/boost.git boost_1_88_0
             pushd boost_1_88_0
               call bootstrap.bat
               b2.exe -j12 toolset=msvc architecture=arm address-model=64 abi=ms pch=off --without-mpi --without-graph_parallel install --prefix=..\boost
