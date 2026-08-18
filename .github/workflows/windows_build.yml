@@ -312,9 +312,13 @@ jobs:
           {
             msbuild.exe GeoDa.vs2019.sln /t:GeoDa /property:Configuration="Release" /m /p:Platform="Win32"
           }
-          else
+          elseif($env:platform -eq "x64")
           {
             msbuild.exe GeoDa.vs2019.sln /t:GeoDa /property:Configuration="Release" /m /p:Platform="x64"  
+          }
+          elseif($env:platform -eq "arm64")
+          {
+            msbuild.exe GeoDa.vs2022.sln /t:GeoDa /property:Configuration="Release" /m /p:Platform="ARM64"  
           }
           # update installer version numbers in iss files
           python update_installer_version.py
@@ -326,10 +330,14 @@ jobs:
             ISCC.exe /q installer\32bit\GeoDa.iss
             ISCC.exe /q installer\32bit\GeoDa-win7+.iss
           } 
-          else
+          elseif($env:platform -eq "x64")
           {
             ISCC.exe /q installer\64bit\GeoDa.iss
             ISCC.exe /q installer\64bit\GeoDa-win7+.iss
+          }
+          elseif($env:platform -eq "arm64")
+          {
+            ISCC.exe /q installer\arm64\GeoDa.iss
           }
 
       - uses: actions/upload-artifact@v4
