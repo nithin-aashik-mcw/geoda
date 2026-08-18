@@ -204,7 +204,8 @@ jobs:
               cmd /c "bootstrap.bat"
               cmd /c "b2.exe -j12 toolset=msvc architecture=arm address-model=64 abi=ms pch=off --without-mpi --without-graph_parallel install --prefix=..\boost"
             Pop-Location
-            robocopy "boost\include\boost-1_88\boost" "boost\include\boost" /E /MOVE
+            Copy-Item -Path "boost\include\boost-1_88\boost" -Destination "boost\include\boost" -Recurse -Force
+            Remove-Item -Path "boost\include\boost-1_88\boost"
           }
           #
           # JSON Spirit v4.08
@@ -277,7 +278,8 @@ jobs:
           if($env:platform -eq "arm64")
           {
             vcpkg install --triplet=arm64-windows --x-install-root=$env:GDA_PATH
-            robocopy $env:GDA_PATH\arm64-windows $env:GDA_PATH\libraries /E /MOVE
+            Copy-Item -Path "$env:GDA_PATH\arm64-windows" -Destination "$env:GDA_PATH\libraries" -Recurse -Force
+            Remove-Item -Path "$env:GDA_PATH\arm64-windows" -Recurse -Force
           }
 
       # Build GeoDa
