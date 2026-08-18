@@ -29,16 +29,16 @@ jobs:
     strategy:
       matrix:
         include:
-          - VS_VERSION: Visual Studio 17
-            VS_VER: 2022
-            MSVC_VER: 1930
-            platform: x64
-            runner: windows-2022
-          - VS_VERSION: Visual Studio 17
-            VS_VER: 2022
-            MSVC_VER: 1930
-            platform: x86
-            runner: windows-2022
+          # - VS_VERSION: Visual Studio 17
+          #   VS_VER: 2022
+          #   MSVC_VER: 1930
+          #   platform: x64
+          #   runner: windows-2022
+          # - VS_VERSION: Visual Studio 17
+          #   VS_VER: 2022
+          #   MSVC_VER: 1930
+          #   platform: x86
+          #   runner: windows-2022
           - VS_VERSION: Visual Studio 17
             VS_VER: 2022
             MSVC_VER: 1930
