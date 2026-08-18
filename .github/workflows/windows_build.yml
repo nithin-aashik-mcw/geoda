@@ -29,16 +29,16 @@ jobs:
     strategy:
       matrix:
         include:
-          # - VS_VERSION: Visual Studio 17
-          #   VS_VER: 2022
-          #   MSVC_VER: 1930
-          #   platform: x64
-          #   runner: windows-2022
-          # - VS_VERSION: Visual Studio 17
-          #   VS_VER: 2022
-          #   MSVC_VER: 1930
-          #   platform: x86
-          #   runner: windows-2022
+          - VS_VERSION: Visual Studio 17
+            VS_VER: 2022
+            MSVC_VER: 1930
+            platform: x64
+            runner: windows-2022
+          - VS_VERSION: Visual Studio 17
+            VS_VER: 2022
+            MSVC_VER: 1930
+            platform: x86
+            runner: windows-2022
           - VS_VERSION: Visual Studio 17
             VS_VER: 2022
             MSVC_VER: 1930
@@ -164,105 +164,105 @@ jobs:
           #
           # wxWidgets 3.1.4
           #
-          # if(-Not (Test-Path -Path wxWidgets.zip)) { Invoke-WebRequest "https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.4/wxWidgets-3.1.4.zip" -OutFile "wxWidgets.zip" }
-          # 7z x wxWidgets.zip -owxWidgets
-          # cd wxWidgets
-          # xcopy /E /Y $env:GDA_PATH\dep\wxWidgets .
-          # cd build\msw
-          # if($env:platform -eq "x86") 
-          # {
-          #   nmake -f makefile.vc UNICODE=1 SHARED=1 RUNTIME_LIBS=dynamic BUILD=release MONOLITHIC=1 USE_OPENGL=1 USE_POSTSCRIPT=1
-          # }
-          # elseif($env:platform -eq "x64") 
-          # {
-          #   nmake -f makefile.vc UNICODE=1 SHARED=1 RUNTIME_LIBS=dynamic BUILD=release MONOLITHIC=1 USE_OPENGL=1 USE_POSTSCRIPT=1 TARGET_CPU=AMD64
-          # }
-          # elseif($env:platform -eq "arm64") 
-          # {
-          #   nmake -f makefile.vc UNICODE=1 SHARED=1 RUNTIME_LIBS=dynamic BUILD=release MONOLITHIC=1 USE_OPENGL=1 USE_POSTSCRIPT=1 TARGET_CPU=ARM64
-          # }
+          if(-Not (Test-Path -Path wxWidgets.zip)) { Invoke-WebRequest "https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.4/wxWidgets-3.1.4.zip" -OutFile "wxWidgets.zip" }
+          7z x wxWidgets.zip -owxWidgets
+          cd wxWidgets
+          xcopy /E /Y $env:GDA_PATH\dep\wxWidgets .
+          cd build\msw
+          if($env:platform -eq "x86") 
+          {
+            nmake -f makefile.vc UNICODE=1 SHARED=1 RUNTIME_LIBS=dynamic BUILD=release MONOLITHIC=1 USE_OPENGL=1 USE_POSTSCRIPT=1
+          }
+          elseif($env:platform -eq "x64") 
+          {
+            nmake -f makefile.vc UNICODE=1 SHARED=1 RUNTIME_LIBS=dynamic BUILD=release MONOLITHIC=1 USE_OPENGL=1 USE_POSTSCRIPT=1 TARGET_CPU=AMD64
+          }
+          elseif($env:platform -eq "arm64") 
+          {
+            nmake -f makefile.vc UNICODE=1 SHARED=1 RUNTIME_LIBS=dynamic BUILD=release MONOLITHIC=1 USE_OPENGL=1 USE_POSTSCRIPT=1 TARGET_CPU=ARM64
+          }
           cd $env:GDA_PATH\temp
-          # if($env:platform -ne "arm64")
-          # {
-          #   #
-          #   # Boost 1.75
-          #   #
-          #   Invoke-WebRequest "https://github.com/lixun910/pygeoda_boost/archive/refs/tags/v1.18.zip" -OutFile "boost.zip"
-          #   7z x boost.zip
-          #   Rename-Item pygeoda_boost-1.18 boost
-          # }
-          # else
-          # {
-          #   #
-          #   # Boost 1.88
-          #   #
-          #   Invoke-WebRequest "https://archives.boost.io/release/1.88.0/source/boost_1_88_0.zip" -OutFile "boost_1_88_0.zip"
-          #   7z x boost_1_88_0.zip   
-          #   dir
-          #   Push-Location boost_1_88_0
-          #     dir
-          #     cmd /c "bootstrap.bat"
-          #     cmd /c "b2.exe -j12 toolset=msvc architecture=arm address-model=64 abi=ms pch=off --without-mpi --without-graph_parallel install --prefix=..\boost"
-          #   Pop-Location
-          #   robocopy "boost\include\boost-1_88\boost" "boost\include\boost" /E /MOVE
-          # }
+          if($env:platform -ne "arm64")
+          {
+            #
+            # Boost 1.75
+            #
+            Invoke-WebRequest "https://github.com/lixun910/pygeoda_boost/archive/refs/tags/v1.18.zip" -OutFile "boost.zip"
+            7z x boost.zip
+            Rename-Item pygeoda_boost-1.18 boost
+          }
+          else
+          {
+            #
+            # Boost 1.88
+            #
+            Invoke-WebRequest "https://archives.boost.io/release/1.88.0/source/boost_1_88_0.zip" -OutFile "boost_1_88_0.zip"
+            7z x boost_1_88_0.zip   
+            dir
+            Push-Location boost_1_88_0
+              dir
+              cmd /c "bootstrap.bat"
+              cmd /c "b2.exe -j12 toolset=msvc architecture=arm address-model=64 abi=ms pch=off --without-mpi --without-graph_parallel install --prefix=..\boost"
+            Pop-Location
+            robocopy "boost\include\boost-1_88\boost" "boost\include\boost" /E /MOVE
+          }
           #
           # JSON Spirit v4.08
           #
-          # if(-Not (Test-Path -Path json_spirit_v4.08.zip )) { Invoke-WebRequest "https://github.com/GeoDaCenter/software/releases/download/v2000/json_spirit_v4.08.zip" -OutFile "json_spirit_v4.08.zip" }
-          # if(-Not (Test-Path -Path json_spirit_v4.08)) { 7z x json_spirit_v4.08.zip }
-          # cd json_spirit_v4.08
-          # xcopy /E /Y $env:GDA_PATH\dep\json_spirit .
-          # if($env:platform -eq "x86") 
-          # {
-          #   msbuild.exe json_vs2019.sln /property:Configuration="Release" /p:Platform="Win32"
-          # }
-          # elseif($env:platform -eq "x64") 
-          # {
-          #   msbuild.exe json_vs2019.sln /property:Configuration="Release" /p:Platform="x64"
-          # }
-          # elseif($env:platform -eq "arm64") 
-          # {
-          #   msbuild.exe json_vs2022.sln /property:Configuration="Release" /p:Platform="ARM64"
-          # }
-          # cd ..
-          # #
-          # # CLAPACK 3.1.1
-          # #
-          # Invoke-WebRequest "https://github.com/GeoDaCenter/software/releases/download/v2000/CLAPACK-3.1.1-VisualStudio.zip" -OutFile "CLAPACK-3.1.1-VisualStudio.zip" 
-          # 7z x CLAPACK-3.1.1-VisualStudio.zip
-          # cd CLAPACK-3.1.1-VisualStudio
-          # xcopy /E /Y $env:GDA_PATH\dep\CLAPACK-3.1.1-VisualStudio .
-          # if($env:platform -eq "x86")
-          # {
-          #   msbuild.exe clapack_vs2019.sln /t:libf2c_vs2019 /property:Configuration="ReleaseDLL"  /p:Platform="Win32"
-          #   msbuild.exe clapack_vs2019.sln /t:BLAS\blas_vs2019 /property:Configuration="ReleaseDLL" /p:Platform="Win32"
-          #   msbuild.exe clapack_vs2019.sln /t:clapack_vs2019 /property:Configuration="ReleaseDLL" /p:Platform="Win32"
-          # }
-          # elseif($env:platform -eq "x64")
-          # {
-          #   msbuild.exe clapack_vs2019.sln /t:libf2c_vs2019 /property:Configuration="ReleaseDLL" /p:Platform="x64"
-          #   msbuild.exe clapack_vs2019.sln /t:BLAS\blas_vs2019 /property:Configuration="ReleaseDLL" /p:Platform="x64"
-          #   msbuild.exe clapack_vs2019.sln /t:clapack_vs2019 /property:Configuration="ReleaseDLL" /p:Platform="x64"
-          # }
-          # elseif($env:platform -eq "arm64")
-          # {
-          #   msbuild.exe clapack_vs2022.sln /t:libf2c_vs2022 /property:Configuration="ReleaseDLL" /p:Platform="ARM64"
-          #   msbuild.exe clapack_vs2022.sln /t:BLAS\blas_vs2022 /property:Configuration="ReleaseDLL" /p:Platform="ARM64"
-          #   msbuild.exe clapack_vs2022.sln /t:clapack_vs2022 /property:Configuration="ReleaseDLL" /p:Platform="ARM64"
-          # }
-          # cd ..
-          # #
-          # # Eigen3
-          # #
-          # Invoke-WebRequest "https://github.com/GeoDaCenter/software/releases/download/v2000/eigen3.zip" -OutFile "eigen3.zip"
-          # 7z x eigen3.zip
-          # #
-          # # Spectra v0.8.0
-          # #
-          # Invoke-WebRequest "https://github.com/yixuan/spectra/archive/refs/tags/v0.8.0.zip" -OutFile "spectra.zip"
-          # 7z x spectra.zip
-          # Rename-Item spectra-0.8.0 spectra
+          if(-Not (Test-Path -Path json_spirit_v4.08.zip )) { Invoke-WebRequest "https://github.com/GeoDaCenter/software/releases/download/v2000/json_spirit_v4.08.zip" -OutFile "json_spirit_v4.08.zip" }
+          if(-Not (Test-Path -Path json_spirit_v4.08)) { 7z x json_spirit_v4.08.zip }
+          cd json_spirit_v4.08
+          xcopy /E /Y $env:GDA_PATH\dep\json_spirit .
+          if($env:platform -eq "x86") 
+          {
+            msbuild.exe json_vs2019.sln /property:Configuration="Release" /p:Platform="Win32"
+          }
+          elseif($env:platform -eq "x64") 
+          {
+            msbuild.exe json_vs2019.sln /property:Configuration="Release" /p:Platform="x64"
+          }
+          elseif($env:platform -eq "arm64") 
+          {
+            msbuild.exe json_vs2022.sln /property:Configuration="Release" /p:Platform="ARM64"
+          }
+          cd ..
+          #
+          # CLAPACK 3.1.1
+          #
+          Invoke-WebRequest "https://github.com/GeoDaCenter/software/releases/download/v2000/CLAPACK-3.1.1-VisualStudio.zip" -OutFile "CLAPACK-3.1.1-VisualStudio.zip" 
+          7z x CLAPACK-3.1.1-VisualStudio.zip
+          cd CLAPACK-3.1.1-VisualStudio
+          xcopy /E /Y $env:GDA_PATH\dep\CLAPACK-3.1.1-VisualStudio .
+          if($env:platform -eq "x86")
+          {
+            msbuild.exe clapack_vs2019.sln /t:libf2c_vs2019 /property:Configuration="ReleaseDLL"  /p:Platform="Win32"
+            msbuild.exe clapack_vs2019.sln /t:BLAS\blas_vs2019 /property:Configuration="ReleaseDLL" /p:Platform="Win32"
+            msbuild.exe clapack_vs2019.sln /t:clapack_vs2019 /property:Configuration="ReleaseDLL" /p:Platform="Win32"
+          }
+          elseif($env:platform -eq "x64")
+          {
+            msbuild.exe clapack_vs2019.sln /t:libf2c_vs2019 /property:Configuration="ReleaseDLL" /p:Platform="x64"
+            msbuild.exe clapack_vs2019.sln /t:BLAS\blas_vs2019 /property:Configuration="ReleaseDLL" /p:Platform="x64"
+            msbuild.exe clapack_vs2019.sln /t:clapack_vs2019 /property:Configuration="ReleaseDLL" /p:Platform="x64"
+          }
+          elseif($env:platform -eq "arm64")
+          {
+            msbuild.exe clapack_vs2022.sln /t:libf2c_vs2022 /property:Configuration="ReleaseDLL" /p:Platform="ARM64"
+            msbuild.exe clapack_vs2022.sln /t:BLAS\blas_vs2022 /property:Configuration="ReleaseDLL" /p:Platform="ARM64"
+            msbuild.exe clapack_vs2022.sln /t:clapack_vs2022 /property:Configuration="ReleaseDLL" /p:Platform="ARM64"
+          }
+          cd ..
+          #
+          # Eigen3
+          #
+          Invoke-WebRequest "https://github.com/GeoDaCenter/software/releases/download/v2000/eigen3.zip" -OutFile "eigen3.zip"
+          7z x eigen3.zip
+          #
+          # Spectra v0.8.0
+          #
+          Invoke-WebRequest "https://github.com/yixuan/spectra/archive/refs/tags/v0.8.0.zip" -OutFile "spectra.zip"
+          7z x spectra.zip
+          Rename-Item spectra-0.8.0 spectra
           if($env:platform -ne "arm64")
           {
             #
@@ -271,15 +271,14 @@ jobs:
             Invoke-WebRequest "https://github.com/GeoDaCenter/software/releases/download/v2000/OpenCL.zip" -OutFile "OpenCL.zip"
             7z x OpenCL.zip
           }
-          # dir
-          # cd ..
-          $env:GDA_PATH
+          dir
+          cd ..
+          cd $env:GDA_PATH
           if($env:platform -eq "arm64")
           {
             vcpkg install --triplet=arm64-windows --x-install-root=$env:GDA_PATH
             robocopy $env:GDA_PATH\arm64-windows $env:GDA_PATH\libraries /E /MOVE
           }
-          dir
 
       # Build GeoDa
       - name: Build GeoDa
