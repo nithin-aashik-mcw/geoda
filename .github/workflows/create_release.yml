@@ -53,9 +53,9 @@ jobs:
           COMMIT_SHA=$(git rev-parse HEAD)
 
           WORKFLOWS=(
-            "windows.yml"
-            "macos.yml"
-            "ubuntu.yml"
+            "windows_build.yml"
+            "osx_build.yml"
+            "ubuntu_build.yml"
           )
 
           MAX_ATTEMPTS=240
