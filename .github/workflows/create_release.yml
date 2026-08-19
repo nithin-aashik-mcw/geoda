@@ -106,16 +106,78 @@ jobs:
             sleep "$SLEEP_SECONDS"
           done
 
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-          pattern: 'GeoDa-*'
+      - name: Download artifacts from successful builds
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+      
+          mkdir -p artifacts
+      
+          COMMIT_SHA=$(git rev-parse HEAD)
+      
+          WORKFLOWS=(
+            "windows.yml"
+            "macos.yml"
+            "ubuntu.yml"
+          )
+      
+          for workflow in "${WORKFLOWS[@]}"; do
+            echo ""
+            echo "========================================"
+            echo "Checking $workflow"
+            echo "========================================"
+      
+            RUN=$(gh run list \
+              --workflow="$workflow" \
+              --commit="$COMMIT_SHA" \
+              --limit=1 \
+              --json databaseId,status,conclusion \
+              --jq '.[0]')
+      
+            if [ -z "$RUN" ]; then
+              echo "No run found for $workflow. Skipping."
+              continue
+            fi
+      
+            RUN_ID=$(echo "$RUN" | jq -r '.databaseId')
+            STATUS=$(echo "$RUN" | jq -r '.status')
+            CONCLUSION=$(echo "$RUN" | jq -r '.conclusion')
+      
+            echo "Run ID: $RUN_ID"
+            echo "Status: $STATUS"
+            echo "Conclusion: $CONCLUSION"
+      
+            if [ "$STATUS" != "completed" ]; then
+              echo "$workflow has not completed. Skipping."
+              continue
+            fi
+      
+            if [ "$CONCLUSION" != "success" ]; then
+              echo "$workflow failed. Skipping its artifacts."
+              continue
+            fi
+      
+            echo "Downloading artifacts from $workflow..."
+      
+            gh run download "$RUN_ID" \
+              --dir "artifacts/$workflow" \
+              --pattern "GeoDa-*"
+      
+            echo "Artifacts downloaded from $workflow."
+          done
+      
+          echo ""
+          echo "========================================"
+          echo "Downloaded artifacts"
+          echo "========================================"
+      
+          find artifacts -type f | sort || true
 
       - name: List downloaded artifacts
         run: |
           echo "Downloaded artifacts:"
-          find artifacts -type f -name "*.dmg" -o -name "*.exe" -o -name "*.deb" | sort
+          find artifacts -type f | sort
 
       - name: Create Release
         id: create_release
@@ -137,115 +199,62 @@ jobs:
           EOF
           )"
 
-      - name: Upload Windows 32-bit Installer
-        uses: actions/upload-release-asset@v1
+      - name: Upload available release artifacts
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/GeoDa-Windows-x86-installer/GeoDa_${{ steps.get_version.outputs.version }}_x86_Setup.exe
-          asset_name: GeoDa_${{ steps.get_version.outputs.version }}_x86_Setup.exe
-          asset_content_type: application/octet-stream
-        continue-on-error: true
-
-      - name: Upload Windows 64-bit Installer
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/GeoDa-Windows-x64-installer/GeoDa_${{ steps.get_version.outputs.version }}_x64_Setup.exe
-          asset_name: GeoDa_${{ steps.get_version.outputs.version }}_x64_Setup.exe
-          asset_content_type: application/octet-stream
-        continue-on-error: true
-
-      - name: Upload Windows ARM64 Installer
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/GeoDa-Windows-arm64-installer/GeoDa_${{ steps.get_version.outputs.version }}_arm64_Setup.exe
-          asset_name: GeoDa_${{ steps.get_version.outputs.version }}_arm64_Setup.exe
-          asset_content_type: application/octet-stream
-        continue-on-error: true
-
-      - name: Upload Windows 7+ 32-bit Installer
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/GeoDa-Windows7+-x86-installer/GeoDa_${{ steps.get_version.outputs.version }}_win7+x86_Setup.exe
-          asset_name: GeoDa_${{ steps.get_version.outputs.version }}_win7+x86_Setup.exe
-          asset_content_type: application/octet-stream
-        continue-on-error: true
-
-      - name: Upload Windows 7+ 64-bit Installer
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/GeoDa-Windows7+-x64-installer/GeoDa_${{ steps.get_version.outputs.version }}_win7+x64_Setup.exe
-          asset_name: GeoDa_${{ steps.get_version.outputs.version }}_win7+x64_Setup.exe
-          asset_content_type: application/octet-stream
-        continue-on-error: true
-
-      - name: Upload macOS Intel Installer
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/GeoDa-${{ steps.get_version.outputs.version }}-x86_64-MacOS/GeoDa${{ steps.get_version.outputs.version }}-x86_64-Installer.dmg
-          asset_name: GeoDa${{ steps.get_version.outputs.version }}-x86_64-Installer.dmg
-          asset_content_type: application/octet-stream
-        continue-on-error: true
-
-      - name: Upload macOS ARM64 Installer
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/GeoDa-${{ steps.get_version.outputs.version }}-arm64-MacOS/GeoDa${{ steps.get_version.outputs.version }}-arm64-Installer.dmg
-          asset_name: GeoDa${{ steps.get_version.outputs.version }}-arm64-Installer.dmg
-          asset_content_type: application/octet-stream
-        continue-on-error: true
-
-      - name: Upload Ubuntu 20.04 Package
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/GeoDa-${{ steps.get_version.outputs.version }}-focal/geoda_${{ steps.get_version.outputs.version }}-1focal1_amd64.deb
-          asset_name: geoda_${{ steps.get_version.outputs.version }}-1focal1_amd64.deb
-          asset_content_type: application/vnd.debian.binary-package
-        continue-on-error: true
-
-      - name: Upload Ubuntu 22.04 Package
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/GeoDa-${{ steps.get_version.outputs.version }}-jammy/geoda_${{ steps.get_version.outputs.version }}-1jammy1_amd64.deb
-          asset_name: geoda_${{ steps.get_version.outputs.version }}-1jammy1_amd64.deb
-          asset_content_type: application/vnd.debian.binary-package
-        continue-on-error: true
-
-      - name: Upload Ubuntu 24.04 Package
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/GeoDa-${{ steps.get_version.outputs.version }}-noble/geoda_${{ steps.get_version.outputs.version }}-1noble1_amd64.deb
-          asset_name: geoda_${{ steps.get_version.outputs.version }}-1noble1_amd64.deb
-          asset_content_type: application/vnd.debian.binary-package
-        continue-on-error: true
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.get_version.outputs.tag }}
+        run: |
+          set -e
+      
+          VERSION="${{ steps.get_version.outputs.version }}"
+      
+          upload_if_exists() {
+            local file="$1"
+      
+            if [ -f "$file" ]; then
+              echo "Uploading: $file"
+      
+              gh release upload \
+                "$TAG" \
+                "$file"
+      
+            else
+              echo "Not found, skipping: $file"
+            fi
+          }
+      
+          # Windows
+          upload_if_exists \
+            "./artifacts/windows.yml/GeoDa-Windows-x86-installer/GeoDa_${VERSION}_x86_Setup.exe"
+      
+          upload_if_exists \
+            "./artifacts/windows.yml/GeoDa-Windows-x64-installer/GeoDa_${VERSION}_x64_Setup.exe"
+      
+          upload_if_exists \
+            "./artifacts/windows.yml/GeoDa-Windows-arm64-installer/GeoDa_${VERSION}_arm64_Setup.exe"
+      
+          upload_if_exists \
+            "./artifacts/windows.yml/GeoDa-Windows7+-x86-installer/GeoDa_${VERSION}_win7+x86_Setup.exe"
+      
+          upload_if_exists \
+            "./artifacts/windows.yml/GeoDa-Windows7+-x64-installer/GeoDa_${VERSION}_win7+x64_Setup.exe"
+      
+          # macOS
+          upload_if_exists \
+            "./artifacts/macos.yml/GeoDa-${VERSION}-x86_64-MacOS/GeoDa${VERSION}-x86_64-Installer.dmg"
+      
+          upload_if_exists \
+            "./artifacts/macos.yml/GeoDa-${VERSION}-arm64-MacOS/GeoDa${VERSION}-arm64-Installer.dmg"
+      
+          # Ubuntu
+          upload_if_exists \
+            "./artifacts/ubuntu.yml/GeoDa-${VERSION}-focal/geoda_${VERSION}-1focal1_amd64.deb"
+      
+          upload_if_exists \
+            "./artifacts/ubuntu.yml/GeoDa-${VERSION}-jammy/geoda_${VERSION}-1jammy1_amd64.deb"
+      
+          upload_if_exists \
+            "./artifacts/ubuntu.yml/GeoDa-${VERSION}-noble/geoda_${VERSION}-1noble1_amd64.deb"
 
       - name: Verify Release Assets
         run: |
