@@ -44,35 +44,64 @@ jobs:
             echo "has_previous_tag=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Wait for builds to complete
+      - name: Wait for build workflows to complete
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "Waiting for build workflows to complete..."
+          set -e
 
-          # Function to check if all required workflows are complete
-          check_workflows() {
-            local max_attempts=240  # 4 hours maximum (240 * 60 seconds)
-            local attempt=1
-            
-            while [ $attempt -le $max_attempts ]; do
-              echo "Checking build status (attempt $attempt/$max_attempts)..."
-              
-              # Get the current commit SHA
-              COMMIT_SHA=$(git rev-parse HEAD)
-              
-              # Check if all three build workflows have completed successfully
-              # We'll use a simple approach: wait and then proceed
-              # The download-artifact action will handle missing artifacts gracefully
-              
-              echo "Waiting 60 seconds before next check..."
-              sleep 60
-              attempt=$((attempt + 1))
+          COMMIT_SHA=$(git rev-parse HEAD)
+
+          WORKFLOWS=(
+            "windows.yml"
+            "macos.yml"
+            "ubuntu.yml"
+          )
+
+          MAX_ATTEMPTS=240
+          SLEEP_SECONDS=60
+
+          for attempt in $(seq 1 $MAX_ATTEMPTS); do
+            echo "Checking build workflows (attempt $attempt/$MAX_ATTEMPTS)..."
+
+            ALL_COMPLETE=true
+
+            for workflow in "${WORKFLOWS[@]}"; do
+              RUN=$(gh run list \
+                --workflow="$workflow" \
+                --commit="$COMMIT_SHA" \
+                --limit=1 \
+                --json databaseId,status,conclusion \
+                --jq '.[0]')
+
+              if [ -z "$RUN" ]; then
+                echo "$workflow: not started"
+                ALL_COMPLETE=false
+                continue
+              fi
+
+              STATUS=$(echo "$RUN" | jq -r '.status')
+              CONCLUSION=$(echo "$RUN" | jq -r '.conclusion')
+
+              echo "$workflow: status=$STATUS conclusion=$CONCLUSION"
+
+              if [ "$STATUS" != "completed" ]; then
+                ALL_COMPLETE=false
+              fi
             done
-            
-            echo "Maximum wait time reached. Proceeding with available artifacts..."
-          }
 
-          # Start the check process
-          check_workflows
+            if [ "$ALL_COMPLETE" = true ]; then
+              echo "All build workflows have completed."
+              break
+            fi
+
+            if [ "$attempt" -eq "$MAX_ATTEMPTS" ]; then
+              echo "Timeout reached. Proceeding with completed builds."
+              break
+            fi
+
+            sleep "$SLEEP_SECONDS"
+          done
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
