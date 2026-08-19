@@ -50,7 +50,7 @@ jobs:
 
           # Function to check if all required workflows are complete
           check_workflows() {
-            local max_attempts=120  # 2 hours maximum (120 * 60 seconds)
+            local max_attempts=240  # 4 hours maximum (240 * 60 seconds)
             local attempt=1
             
             while [ $attempt -le $max_attempts ]; do
