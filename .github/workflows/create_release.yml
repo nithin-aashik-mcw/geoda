@@ -5,6 +5,9 @@ on:
     tags:
       - 'v*' # Triggers on version tags like v1.22.0
 
+permissions:
+  contents: write
+
 jobs:
   create-release:
     runs-on: ubuntu-latest
@@ -116,24 +119,23 @@ jobs:
 
       - name: Create Release
         id: create_release
-        uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ steps.get_version.outputs.tag }}
-          release_name: GeoDa ${{ steps.get_version.outputs.version }}
-          body: |
-            ## GeoDa ${{ steps.get_version.outputs.version }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ steps.get_version.outputs.tag }}" \
+            --title "GeoDa ${{ steps.get_version.outputs.version }}" \
+            --notes "$(cat <<'EOF'
+          ## GeoDa ${{ steps.get_version.outputs.version }}
 
-            ### What's Changed
+          ### What's Changed
 
-            This release includes the following changes since the previous version:
+          This release includes the following changes since the previous version:
 
-            ${{ steps.get_commits.outputs.commits }}
+          ${{ steps.get_commits.outputs.commits }}
 
-            For detailed information about changes in this release, see the [changelog](https://github.com/GeoDaCenter/geoda/blob/master/CHANGELOG.md).
-          draft: false
-          prerelease: false
+          For detailed information about changes in this release, see the [changelog](https://github.com/GeoDaCenter/geoda/blob/master/CHANGELOG.md).
+          EOF
+          )"
 
       - name: Upload Windows 32-bit Installer
         uses: actions/upload-release-asset@v1

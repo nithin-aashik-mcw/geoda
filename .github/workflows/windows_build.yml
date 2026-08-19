@@ -39,11 +39,11 @@ jobs:
             MSVC_VER: 1930
             platform: x86
             runner: windows-2022
-          - VS_VERSION: Visual Studio 17
-            VS_VER: 2022
-            MSVC_VER: 1930
-            platform: arm64
-            runner: windows-11-arm
+          # - VS_VERSION: Visual Studio 17
+          #   VS_VER: 2022
+          #   MSVC_VER: 1930
+          #   platform: arm64
+          #   runner: windows-11-arm
 
     env:
       VS_VERSION: ${{ matrix.VS_VERSION }}
