@@ -277,7 +277,7 @@ jobs:
           cd $env:GDA_PATH
           if($env:platform -eq "arm64")
           {
-            vcpkg install --triplet=arm64-windows --x-install-root=$env:GDA_PATH
+            vcpkg install gdal:arm64-windows opencl:arm64-windows --x-install-root=$env:GDA_PATH
             Copy-Item -Path "$env:GDA_PATH\arm64-windows" -Destination "$env:GDA_PATH\libraries" -Recurse -Force
             Remove-Item -Path "$env:GDA_PATH\arm64-windows" -Recurse -Force
           }

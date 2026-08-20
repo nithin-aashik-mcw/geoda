@@ -11,7 +11,7 @@ if %PROCESSOR_ARCHITECTURE% == x86 (
 ) else if %PROCESSOR_ARCHITECTURE% == AMD64 (
     call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat"
 ) else if %PROCESSOR_ARCHITECTURE% == ARM64 (
-    call "C:\Program Files (x86)\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsarm64.bat"
+    call "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsarm64.bat"
 )
 
 
@@ -73,7 +73,6 @@ set MSBUILD_EXE= msbuild
 echo MSBUILD_EXE: %MSBUILD_EXE%
 
 IF NOT EXIST %DOWNLOAD_HOME% md %DOWNLOAD_HOME%
-
 
 if NOT %GDA_BUILD% == BUILD_a64 (
   echo.
@@ -270,6 +269,16 @@ if NOT %GDA_BUILD% == BUILD_a64 (
 )
 
 if %GDA_BUILD% == BUILD_a64 (
-  vcpkg install --triplet=arm64-windows --x-install-root=%BUILD_HOME%
+  cd %BUILD_HOME%
+  IF NOT EXIST %BUILD_HOME%\vcpkg\.git\  (
+    rmdir /s /q vcpkg
+    git clone https://github.com/microsoft/vcpkg.git vcpkg
+    pushd vcpkg
+      call "bootstrap-vcpkg.bat"
+    popd
+  )
+  pushd vcpkg
+    vcpkg install gdal:arm64-windows opencl:arm64-windows --x-install-root=%BUILD_HOME%
+  popd
   robocopy "%BUILD_HOME%\arm64-windows" "%BUILD_HOME%\libraries" /E /MOVE
 )
