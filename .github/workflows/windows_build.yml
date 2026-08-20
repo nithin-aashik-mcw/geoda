@@ -39,11 +39,11 @@ jobs:
             MSVC_VER: 1930
             platform: x86
             runner: windows-2022
-          # - VS_VERSION: Visual Studio 17
-          #   VS_VER: 2022
-          #   MSVC_VER: 1930
-          #   platform: arm64
-          #   runner: windows-11-arm
+          - VS_VERSION: Visual Studio 17
+            VS_VER: 2022
+            MSVC_VER: 1930
+            platform: arm64
+            runner: windows-11-arm
 
     env:
       VS_VERSION: ${{ matrix.VS_VERSION }}
@@ -140,6 +140,13 @@ jobs:
           $env:GDA_PATH="$env:GITHUB_WORKSPACE\BuildTools\windows"
           cd $env:GDA_PATH
           mkdir temp
+          cd $env:GDA_PATH
+          if($env:platform -eq "arm64")
+          {
+            vcpkg install gdal:arm64-windows opencl:arm64-windows --x-install-root=$env:GDA_PATH
+            Copy-Item -Path "$env:GDA_PATH\arm64-windows" -Destination "$env:GDA_PATH\libraries" -Recurse -Force
+            Remove-Item -Path "$env:GDA_PATH\arm64-windows" -Recurse -Force
+          }
           if($env:platform -ne "arm64")
           {
             #
@@ -274,13 +281,6 @@ jobs:
           }
           dir
           cd ..
-          cd $env:GDA_PATH
-          if($env:platform -eq "arm64")
-          {
-            vcpkg install --triplet=arm64-windows --x-install-root=$env:GDA_PATH
-            Copy-Item -Path "$env:GDA_PATH\arm64-windows" -Destination "$env:GDA_PATH\libraries" -Recurse -Force
-            Remove-Item -Path "$env:GDA_PATH\arm64-windows" -Recurse -Force
-          }
 
       # Build GeoDa
       - name: Build GeoDa
