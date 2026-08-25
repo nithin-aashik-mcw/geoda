@@ -61,8 +61,6 @@ Source: "..\..\temp\wxWidgets\lib\vc_arm64_dll\wxmsw314u_vc_custom.dll"; DestDir
 Source: "..\..\temp\wxWidgets\lib\vc_arm64_dll\wxmsw314u_gl_vc_custom.dll"; DestDir: "{app}"
 Source: "..\..\..\..\Algorithms\lisa_kernel.cl"; DestDir: "{app}"
 Source: "..\..\..\..\internationalization\lang\*"; DestDir: "{app}\lang"; Flags: recursesubdirs
-; Add lang data back to {app} so they can be copied to other new windows users
-Source: "..\..\..\..\internationalization\lang\*"; DestDir: "{app}\lang"; Flags: recursesubdirs
 Source: "..\..\libraries\share\gdal\*"; DestDir: "{app}\data"; Flags: recursesubdirs
 
 ;Source: "Readme.txt"; DestDir: "{app}"; Flags: isreadme
