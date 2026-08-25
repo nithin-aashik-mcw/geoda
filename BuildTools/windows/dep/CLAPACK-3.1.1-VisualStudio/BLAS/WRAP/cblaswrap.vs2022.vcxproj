@@ -525,7 +525,7 @@
       <Culture>0x0409</Culture>
     </ResourceCompile>
     <Lib>
-      <OutputFile>..\..\LIB\x64\cblaswrap.lib</OutputFile>
+      <OutputFile>..\..\LIB\a64\cblaswrap.lib</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
     </Lib>
     <Bscmake>
