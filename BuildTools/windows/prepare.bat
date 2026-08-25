@@ -180,7 +180,7 @@ if %GDA_BUILD% == BUILD_a64 (
     call bootstrap.bat
     b2.exe -j12 toolset=msvc architecture=arm address-model=64 abi=ms pch=off --without-mpi --without-graph_parallel install --prefix=%DOWNLOAD_HOME%\boost
     robocopy "%DOWNLOAD_HOME%\boost\include\boost-1_88\boost" "%DOWNLOAD_HOME%\boost\include\boost" /E /MOVE
-    rmdir \s \q "%DOWNLOAD_HOME%\boost\include\boost-1_88"
+    rmdir /s /q "%DOWNLOAD_HOME%\boost\include\boost-1_88"
   popd
 ) else (
   echo.
